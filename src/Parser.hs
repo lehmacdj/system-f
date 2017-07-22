@@ -48,11 +48,12 @@ pUnit :: Parser Term
 pUnit = reserved "()" *> pure Unit
 
 pTerm :: Parser Term
-pTerm =
-    pUnit
-    <|> pVar
-    <|> pLam
-    <|> (foldl1 App <$> parens (pTerm `sepEndBy` spaces))
+pTerm = buildExpressionParser
+    [ [ Infix (whiteSpace *> pure App) AssocLeft ] ]
+    pCompoundTerm
+
+pCompoundTerm :: Parser Term
+pCompoundTerm = pUnit <|> pVar <|> pLam <|> parens pTerm
 
 pUnitTy :: Parser Type
 pUnitTy = reserved "unit" *> pure UnitTy
