@@ -37,10 +37,10 @@ binop :: String -> (a -> a -> a) -> Assoc -> Operator String u Identity a
 binop name fn = Infix ((reservedOp name <|> reserved name) *> pure fn)
 
 pVar :: Parser Term
-pVar = Var <$> identifier
+pVar = Var <$> (Variable <$> identifier)
 
 pLam :: Parser Term
-pLam = Lam <$> (lexeme (oneOf "λ\\") *> identifier)
+pLam = Lam <$> (Variable <$> (lexeme (oneOf "λ\\") *> identifier))
            <*> (lexeme (char ':') *> pType)
            <*> (lexeme (char '.') *> pTerm)
 

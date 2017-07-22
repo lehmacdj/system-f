@@ -5,6 +5,7 @@ import Test.Tasty.HUnit
 
 import AST
 import Evaluator
+import Variables
 
 main :: IO ()
 main = defaultMain tests
@@ -13,14 +14,14 @@ tests = testGroup "Evaluator" [unitTests]
 
 unitTests = testGroup "Unit Tests"
     [ testCase "substitute var success" $
-        substitute "x" (Var "y") (Var "x") @?= Var "y"
+        substitute (Variable "x") (var "y") (var "x") @?= var "y"
     , testCase "substitute var fail" $
-        substitute "x" (Var "y") (Var "z") @?= Var "z"
+        substitute (Variable "x") (var "y") (var "z") @?= var "z"
     , testCase "substitute distributes over app" $
-        substitute "x" (Var "z")
-            (Var "x" `App` (Var "y" `App` Var "x"))
-        @?= (Var "z" `App` (Var "y" `App` Var "z"))
+        substitute (Variable "x") (var "z")
+            (var "x" `App` (var "y" `App` var "x"))
+        @?= (var "z" `App` (var "y" `App` var "z"))
     , testCase "substitute avoids λ's" $
-        substitute "x" (Var "y") (Lam "x" UnitTy (Var "x"))
-        @?= Lam "x" UnitTy (Var "x")
+        substitute (Variable "x") (var "y") (Lam (Variable "x") UnitTy (var "x"))
+        @?= Lam (Variable "x") UnitTy (var "x")
     ]
