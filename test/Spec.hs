@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Test.Tasty
@@ -13,15 +15,15 @@ main = defaultMain tests
 tests = testGroup "Evaluator" [unitTests]
 
 unitTests = testGroup "Unit Tests"
-    [ testCase "substitute var success" $
-        substitute (Variable "x") (var "y") (var "x") @?= var "y"
-    , testCase "substitute var fail" $
-        substitute (Variable "x") (var "y") (var "z") @?= var "z"
+    [ testCase "substitute Var success" $
+        substitute ("x" :: Var) (Var "y") (Var "x") @?= Var "y"
+    , testCase "substitute Var fail" $
+        substitute ("x" :: Var) (Var "y") (Var "z") @?= Var "z"
     , testCase "substitute distributes over app" $
-        substitute (Variable "x") (var "z")
-            (var "x" `App` (var "y" `App` var "x"))
-        @?= (var "z" `App` (var "y" `App` var "z"))
+        substitute ("x" :: Var) (Var "z")
+            (Var "x" `App` (Var "y" `App` Var "x"))
+        @?= (Var "z" `App` (Var "y" `App` Var "z"))
     , testCase "substitute avoids λ's" $
-        substitute (Variable "x") (var "y") (Lam (Variable "x") UnitTy (var "x"))
-        @?= Lam (Variable "x") UnitTy (var "x")
+        substitute ("x" :: Var) (Var "y") (Lam (Variable "x") UnitTy (Var "x"))
+        @?= Lam (Variable "x") UnitTy (Var "x")
     ]

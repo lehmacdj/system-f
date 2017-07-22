@@ -3,6 +3,8 @@
 
 module AST where
 
+import Data.String (IsString, fromString)
+
 import Data.Data
 import Control.Lens.Plated
 import Data.List ((\\))
@@ -15,7 +17,13 @@ newtype Var = Variable String deriving (Eq, Show, Data, Typeable, Ord)
 instance Uniquable Var where
     ustream = fmap Variable ustream
 
+instance IsString Var where
+    fromString = Variable
+
 newtype TyVar = TyVariable String deriving (Eq, Show, Data, Typeable, Ord)
+
+instance IsString TyVar where
+    fromString = TyVariable
 
 instance Uniquable TyVar where
     ustream = fmap TyVariable ustream
@@ -28,9 +36,6 @@ data Term = Unit
           | TyLam TyVar Term
           | TyApp Term Type
         deriving (Show, Data, Typeable, Eq)
-
-var :: String -> Term
-var = Var . Variable
 
 instance Plated Term
 
@@ -68,9 +73,6 @@ data Type = UnitTy
           | Forall TyVar Type
         -- | Exists
           deriving (Show, Eq, Data, Typeable)
-
-tyVar :: String -> Type
-tyVar = TyVar . TyVariable
 
 instance Plated Type
 
