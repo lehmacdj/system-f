@@ -12,9 +12,14 @@ import Variables
 main :: IO ()
 main = defaultMain tests
 
-tests = testGroup "Evaluator" [substituteTests]
+tests = testGroup "tests" [substituteTests]
 
 substituteTests = testGroup "substitute"
+    [ substituteExpr
+    , substituteType
+    ]
+
+substituteExpr = testGroup "Expr"
     [ testCase "on Var succeeds" $
         substitute ("x" :: Var) (Var "y") (Var "x") @?= Var "y"
     , testCase "on Var fails" $
@@ -32,4 +37,24 @@ substituteTests = testGroup "substitute"
     , testCase "works on multiple variables" $
         substitute ("x" :: Var) (Var "y") (Var "x" `App` Var "x")
         @?= (Var "y" `App` Var "y")
+    ]
+
+substituteType = testGroup "Type"
+    [ testCase "on Var succeeds" $
+        substitute ("x" :: TyVar) (TyVar "y") (TyVar "x") @?= TyVar "y"
+    , testCase "on TyVar fails" $
+        substitute ("x" :: TyVar) (TyVar "y") (TyVar "z") @?= TyVar "z"
+    , testCase "distributes over app" $
+        substitute ("x" :: TyVar) (TyVar "z")
+            (TyVar "x" `FunTy` (TyVar "y" `FunTy` TyVar "x"))
+        @?= (TyVar "z" `FunTy` (TyVar "y" `FunTy` TyVar "z"))
+    , testCase "avoids λ's" $
+        substitute ("x" :: TyVar) (TyVar "y") (Forall "x" (TyVar "x"))
+        @?= Forall "x" (TyVar "x")
+    , testCase "doesn't avoid nonbinding λ's" $
+        substitute ("z" :: TyVar) (TyVar "y") (Forall "x" (TyVar "z"))
+        @?= Forall "x" (TyVar "y")
+    , testCase "works on multiple variables" $
+        substitute ("x" :: TyVar) (TyVar "y") (TyVar "x" `FunTy` TyVar "x")
+        @?= (TyVar "y" `FunTy` TyVar "y")
     ]
