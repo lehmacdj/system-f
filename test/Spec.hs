@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
 
 module Main where
 
@@ -8,11 +8,12 @@ import Test.Tasty.HUnit
 import AST
 import Evaluator
 import Variables
+import TyCheck
 
 main :: IO ()
 main = defaultMain tests
 
-tests = testGroup "tests" [substituteTests]
+tests = testGroup "tests" [substituteTests, typeCheckTests]
 
 substituteTests = testGroup "substitute"
     [ substituteExpr
@@ -57,4 +58,15 @@ substituteType = testGroup "Type"
     , testCase "works on multiple variables" $
         substitute ("x" :: TyVar) (TyVar "y") (TyVar "x" `FunTy` TyVar "x")
         @?= (TyVar "y" `FunTy` TyVar "y")
+    ]
+
+typeCheckTests = testGroup "typeCheck"
+    [ testCase "base type" $ typeCheck [] [] Unit @?= Right UnitTy
+    , testCase "var type in env" $
+        typeCheck [("x", UnitTy)] [] (Var "x") @?= Right UnitTy
+    , testCase "func type" $
+        typeCheck [] [] (Lam "x" UnitTy Unit) @?= Right (FunTy UnitTy UnitTy)
+    , testCase "func type extends env" $
+        typeCheck [("x", FunTy UnitTy UnitTy)] [] (Lam "x" UnitTy Unit)
+        @?= Right (FunTy UnitTy UnitTy)
     ]
