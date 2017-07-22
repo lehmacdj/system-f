@@ -20,3 +20,6 @@ evaluate (Var x) = Right $ Var x -- lookup x and return that and x if not presen
 evaluate (Lam x ty t) = Lam x ty <$> evaluate t
 evaluate (App (Lam x _ esub) erep) = pure $ substitute x erep esub
 evaluate (App t _) = Left $ quote (show t) ++ " cannot be applied"
+evaluate (TyLam x t) = TyLam x <$> evaluate t
+evaluate (TyApp (TyLam _ t) _) = evaluate t
+evaluate (TyApp t _) = Left $ quote (show t) ++ " cannot have a type applied to it"
