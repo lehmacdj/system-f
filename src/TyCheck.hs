@@ -31,11 +31,13 @@ coherent ke ty = if typeCoherent ke ty
 
 typeCheck :: TyEnv -> KindEnv -> Term -> Either String Type
 typeCheck te ke Unit = Right UnitTy
-typeCheck te ke (Var x) = maybe (Left $ "variable " ++ show x ++ " not in scope")
+typeCheck te ke (Var x) = maybe
+                            (Left $ show x ++ " is not in scope")
                             (coherent ke)
                             (M.lookup x te)
-typeCheck te ke (Lam x ty t) = ((FunTy ty <$>) . coherent ke) =<<
-    typeCheck (M.insert x ty te) ke t
+typeCheck te ke (Lam x ty t) =
+    ((FunTy ty <$>) . coherent ke)
+    =<< typeCheck (M.insert x ty te) ke t
 typeCheck te ke (App t1 t2) =
     case (typeCheck te ke t1, typeCheck te ke t2) of
       (Right (FunTy ty1 ty2), Right ty1') ->
@@ -47,4 +49,4 @@ typeCheck te ke (TyLam a t) = Forall a <$> typeCheck te (S.insert a ke) t
 typeCheck te ke (TyApp t ty) = do
     ty' <- coherent ke ty
     Forall x ty'' <- typeCheck te ke t
-    return $ substitute x ty'' ty'
+    return $ substitute x ty' ty''
