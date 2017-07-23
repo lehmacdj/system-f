@@ -5,5 +5,7 @@ module Variables where
 class VarContaining t v where
     fvs :: t -> [v]
 
-class VarContaining t v => Substitutable t v where
-    substitute :: v -> t -> t -> t
+-- Substitutable v s t means that v can be substituted for s in t
+class VarContaining t v => Substitutable v s t where
+    -- substitute v s t computes t{s/v}
+    substitute :: v -> s -> t -> t

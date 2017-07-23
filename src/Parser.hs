@@ -68,7 +68,7 @@ pLam = Lam <$> (Variable <$> (lexeme (oneOf "λ\\") *> identifier))
            <*> (lexeme (char '.') *> pTerm)
 
 pTyLam :: Parser Term
-pTyLam = TyLam <$> (TyVariable <$> (lexeme (oneOf "%Λ") *> identifier))
+pTyLam = TyLam <$> (TyVariable <$> (lexeme (oneOf "^Λ") *> char '\'' *> identifier))
                <*> (lexeme (char '.') *> pTerm)
 
 pUnit :: Parser Term
@@ -77,9 +77,7 @@ pUnit = reserved "()" *> pure Unit
 pTyTerm :: Parser TermTyApps
 pTyTerm = buildExpressionParser
     [ [ Infix (reservedOp "@" *> pure tyApp) AssocLeft
-      , Infix (whiteSpace *> pure app) AssocLeft
-      ]
-    ]
+      , Infix (whiteSpace *> pure app) AssocLeft ] ]
     pCompoundTyTerm
 
 pCompoundTyTerm :: Parser TermTyApps
@@ -87,6 +85,7 @@ pCompoundTyTerm =
     (term <$> pUnit)
     <|> (term <$> pVar)
     <|> (term <$> pLam)
+    <|> (term <$> pTyLam)
     <|> (ty <$> pType)
     <|> parens pTyTerm
 
