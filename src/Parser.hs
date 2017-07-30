@@ -14,7 +14,7 @@ type Parser = Parsec String ()
 
 tokenParser :: P.TokenParser u
 tokenParser = P.makeTokenParser emptyDef
-    { P.commentLine = "#"
+    { P.commentLine = "--"
     , P.opStart = oneOf "-@"
     , P.opLetter = oneOf "->@"
     , P.identStart = letter
@@ -31,6 +31,7 @@ P.TokenParser
     , P.identifier = identifier
     , P.whiteSpace = whiteSpace
     , P.lexeme = lexeme
+    , P.stringLiteral = stringLiteral
     } = tokenParser
 
 data TyTerm = T Term
