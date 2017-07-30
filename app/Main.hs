@@ -8,11 +8,14 @@ import AST
 import TyCheck
 import Parser
 import Variables
+import LamFile
 
 import Data.Map (Map)
 import qualified Data.Map as M
 
 import Control.Monad.Free
+
+import Data.Semigroup
 
 import Control.Arrow
 import Control.Monad.State
@@ -34,7 +37,7 @@ putAndPrint (str, env) = do
     replPrint str
     maybe (pure ()) put env
 
-data Command = Set String Term
+data Command = Decl Declaration
              | Check Term
              | Evaluate Term
              | Parse Term
@@ -43,7 +46,7 @@ data Command = Set String Term
 
 pLine :: Parser Command
 pLine =
-    try (Set <$> identifier <*> (lexeme (char '=') *> pTerm))
+    try (Decl <$> pDeclaration)
     <|> try (Check <$> (lexeme (string ":t") *> pTerm))
     <|> try (lexeme (string ":q") *> pure Quit)
     <|> try (Parse <$> (lexeme (string ":p") *> pTerm))
@@ -54,7 +57,10 @@ readCommand s = left show $ parse (whiteSpace *> pLine <* eof) "Repl" s
 
 evalCommand :: Command -> Repl ()
 evalCommand Quit = pure ()
-evalCommand (Set s t) = (M.insert (Variable s) t <$> get) >>= put
+evalCommand (Decl d) = do
+    newEnv <- lift $ lift $ normalizeDeclaration d
+    theEnv <- get
+    put $ theEnv <> newEnv
 evalCommand (Check t) = replPrint (show $ typeCheck [] [] t)
 evalCommand (Parse t) = replPrint (show t)
 evalCommand (Evaluate t) = do
