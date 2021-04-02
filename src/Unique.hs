@@ -28,9 +28,12 @@ newtype UniqueT u m a = UniqueT (StateT [u] m a)
 
 instance (Monad m, Uniquable u) => MonadUnique u (UniqueT u m) where
     fresh = UniqueT $ do
-        (u:us) <- get
-        put us
-        pure u
+        us <- get
+        case us of
+          [] -> error "ustream must be near infinite for Unique monad"
+          (u:rest) -> do
+            put rest
+            pure u
 
 type Unique u a = UniqueT u Identity a
 
